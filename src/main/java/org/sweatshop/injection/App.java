@@ -4,6 +4,7 @@ import javax.ws.rs.ApplicationPath;
 
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 
 @ApplicationPath("/")
@@ -25,7 +26,25 @@ public class App extends ResourceConfig {
         new App(jettyServer).runServer();
     }
 
+    private void register() {
+        log.info("start register");
+
+        register(EntryPoint.class);
+        register(StringHolder.class);
+        register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                log.info("start bind singleton");
+                bind(new StringHolder("injected string")).to(StringHolder.class);
+                log.info("end bind singleton");
+            }
+        });
+
+        log.info("end register");
+    }
+
     private void runServer() throws Exception {
+        register();
         try {
             jettyServer.start();
         } finally {
